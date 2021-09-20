@@ -2,21 +2,38 @@
   "name": "passbooklet-cli",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "license": "MIT",
+  "scripts": {
+    "postinstall": "patch-package && yarn yolo-patch-pkijs-types",
+    "yolo-patch-pkijs-types": "yarn yolo-patch-pkijs-types:imports; yarn yolo-patch-pkijs-types:modules",
+    "yolo-patch-pkijs-types:imports": "perl -i -pe 's/\"(pkijs\\/src\\/.*)\";$/\"$1.js\";/g' ./node_modules/@types/pkijs/index.d.ts",
+    "yolo-patch-pkijs-types:modules": "perl -i -pe 's/(?<!\\.js)\" {$/.js\" {/g' ./node_modules/@types/pkijs/index.d.ts",
+    "write-certificate-functions": "./tools/certs-to-functions.sh"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "cmd-ts": "^0.7.0",
     "dotenv": "^10.0.0",
     "flat": "^5.0.2",
     "jszip": "^3.7.1",
+    "lodash.difference": "^4.5.0",
     "lodash.set": "^4.3.2",
+    "pkijs": "^2.1.97",
     "temp": "^0.9.4"
   },
   "devDependencies": {
     "@types/flat": "^5.0.2",
+    "@types/lodash.difference": "^4.5.6",
     "@types/lodash.set": "^4.3.6",
     "@types/node": "^16.9.4",
+    "@types/pkijs": "^0.0.10",
     "@types/temp": "^0.9.1",
     "@types/unzipper": "^0.10.4",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.4.1",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"

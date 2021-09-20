@@ -98,3 +98,4 @@ yarn ts-node ./bin/passbooklet-cli.ts modify /path/to/source.pkpass /path/to/des
 - automate certificate import/`.env` creation
 - instead of `.env`, import from keychain at runtime so certs aren't just sitting on disk in the open (or, at least, read from `.p12`)
 - publish `npx` friendly executable
+- handle `.pkpass` files with `.zip` (sub)folders

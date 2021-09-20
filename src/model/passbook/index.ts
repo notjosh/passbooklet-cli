@@ -1,9 +1,10 @@
 import flat from 'flat';
 import set from 'lodash.set';
-import Manifesto from '../manifesto';
-import Signer, { SignerConfig } from '../signer';
-import Zip from '../zip';
-import { Pass } from './types';
+import CreeptoValidator from '../creepto/validator.js';
+import Manifesto from '../manifesto/index.js';
+import Signer, { SignerConfig } from '../signer/index.js';
+import Zip from '../zip/index.js';
+import { Pass } from './types.js';
 
 type SaveConfig = {
   teamIdentifier: string;
@@ -97,6 +98,11 @@ class Passbook {
     await this.zip.writeBinary('signature', signature);
 
     await this.zip.saveTo(outputPath);
+  }
+
+  async validate(): Promise<string[]> {
+    const validator = new CreeptoValidator(this.zip);
+    return validator.validate();
   }
 }
 

@@ -1,0 +1,14 @@
+diff --git a/node_modules/pkijs/package.json b/node_modules/pkijs/package.json
+index 04fd471..3864bb5 100644
+--- a/node_modules/pkijs/package.json
++++ b/node_modules/pkijs/package.json
+@@ -103,7 +103,8 @@
+   ],
+   "jsnext:main": "./src/index.js",
+   "module": "./src/index.js",
+-  "main": "./build/index.js",
++  "main": "./src/index.js",
++  "type": "module",
+   "name": "pkijs",
+   "version": "2.1.97",
+   "license": "BSD-3-Clause",

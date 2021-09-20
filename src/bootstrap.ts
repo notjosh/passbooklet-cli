@@ -1,7 +1,21 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 import temp from 'temp';
 import fs from 'fs';
+
+import { webcrypto } from 'crypto';
+import { setEngine } from 'pkijs/src/common.js';
+import CryptoEngine from 'pkijs/src/CryptoEngine.js';
+
+// TODO: when @types/node catches up, clean this up
+const name = 'node-webcrypto';
+const crypto = webcrypto;
+setEngine(
+  name,
+  crypto as unknown as Crypto,
+  new CryptoEngine({ name, crypto, subtle: (crypto as any)['subtle'] })
+);
 
 const configFromEnv = () => {
   const {

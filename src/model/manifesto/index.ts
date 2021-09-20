@@ -1,5 +1,5 @@
 import crypto, { Hash } from 'crypto';
-import Zip from '../zip';
+import Zip from '../zip/index.js';
 
 type Config = {
   algorithm: string;
@@ -58,6 +58,14 @@ class Manifesto {
     );
 
     return Object.fromEntries(files.map((file) => [file.path, file.signature]));
+  }
+
+  async hashFor(path: string): Promise<string> {
+    const file = this.zip.fileAt(path);
+    const hasher = new ZipFileHasher(this.config.algorithm);
+    const signature = await hasher.fromStream(file.nodeStream());
+
+    return signature;
   }
 }
 

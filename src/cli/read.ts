@@ -1,8 +1,8 @@
 import { command, positional, string } from 'cmd-ts';
-import Passbook from '../model/passbook';
+import Passbook from '../model/passbook/index.js';
 
 const read = command({
-  name: 'modify',
+  name: 'read',
   description: 'Read all keys and values from a .pkpass',
   args: {
     inputPath: positional({

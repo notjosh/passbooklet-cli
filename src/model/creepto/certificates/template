@@ -1,0 +1,10 @@
+import certificateFor from '../certificate-for.js';
+
+export default () => {
+  const contents = `
+###CONTENTS###
+`.trim();
+  const buffer = Buffer.from(contents, 'base64');
+
+  return certificateFor(buffer);
+};

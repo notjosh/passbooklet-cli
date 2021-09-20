@@ -1,23 +1,6 @@
-import {
-  array,
-  boolean,
-  command,
-  flag,
-  multioption,
-  option,
-  optional,
-  positional,
-  string,
-} from 'cmd-ts';
-import { configFromEnv } from '../bootstrap';
-import Passbook from '../model/passbook';
-
-const {
-  TEAM_IDENTIFIER,
-  PASS_TYPE_IDENTIFIER,
-  WWDR_CERTIFICATE_PATH,
-  CERTIFICATE_PATH,
-} = process.env;
+import { array, command, multioption, positional, string } from 'cmd-ts';
+import { configFromEnv } from '../bootstrap.js';
+import Passbook from '../model/passbook/index.js';
 
 const modify = command({
   name: 'modify',

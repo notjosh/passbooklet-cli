@@ -3,14 +3,7 @@ data/
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,node,certificates
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,node,certificates
-
-### certificates ###
-*.pem
-*.key
-*.crt
-*.cer
-*.priv
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,node
 
 ### macOS ###
 # General

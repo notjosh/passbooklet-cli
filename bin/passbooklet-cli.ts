@@ -1,4 +1,4 @@
-import cli from '../src/cli';
+import cli from '../src/cli/index.js';
 
 (async () => {
   try {

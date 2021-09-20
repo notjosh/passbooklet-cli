@@ -39,8 +39,22 @@ class Zip {
     });
   }
 
+  fileAt(path: string): JSZip.JSZipObject {
+    const file = this.zip.file(path);
+
+    if (file == null) {
+      throw new Error(`no path in zip at ${path}`);
+    }
+
+    return file;
+  }
+
   async stringFor(path: string) {
     return this.zip.file(path)?.async('string');
+  }
+
+  async bufferFor(path: string) {
+    return this.zip.file(path)?.async('nodebuffer');
   }
 
   async remove(path: string) {
@@ -55,7 +69,7 @@ class Zip {
     this.zip.file(path, data, { binary: true, base64: false });
   }
 
-  async map<T>(callback: (relativePath: string, file: JSZip.JSZipObject) => T) {
+  map<T>(callback: (relativePath: string, file: JSZip.JSZipObject) => T) {
     const out = [] as T[];
 
     this.zip.forEach((path, file) => {
