@@ -81,14 +81,14 @@ WWDR_CERTIFICATE="-----BEGIN CERTIFICATE-----\n
 ### Dump Editable `.pkpass` Keys
 
 ```
-yarn ts-node ./bin/passbooklet-cli.ts --dump /path/to/some.pkpass
+yarn ts-node ./bin/passbooklet-cli.ts read /path/to/some.pkpass
 ```
 
 ### Rewrite Keys & Export New `.pkpass`
 
 ```
 # This would change a field to "2", i.e. to bump up a boarding group
-yarn ts-node ./bin/passbooklet-cli.ts /path/to/source.pkpass -u boardingPass.auxiliaryFields.3.value=2 -o /path/to/destination.pkpass
+yarn ts-node ./bin/passbooklet-cli.ts modify /path/to/source.pkpass /path/to/destination.pkpass -u boardingPass.auxiliaryFields.3.value=2
 ```
 
 ## TODO
