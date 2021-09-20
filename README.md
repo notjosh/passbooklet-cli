@@ -12,6 +12,12 @@ Next, make sure you have your `.env` file in place:
 cp .env.example .env
 ```
 
+And since we're a `yarn` project, let's initialise via:
+
+```
+yarn
+```
+
 ### Key & Certificate
 
 From above, you should have the `.p12` file. We'll run a command to generate an value for the `.env` file as follows:
