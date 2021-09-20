@@ -69,3 +69,24 @@ Use that for your `WWDR_CERTIFICATE` variable used in `.env`. Make sure you incl
 ```
 WWDR_CERTIFICATE="-----BEGIN CERTIFICATE-----\n
 ```
+
+## Usage
+
+### Dump Editable `.pkpass` Keys
+
+```
+yarn ts-node ./bin/passbooklet-cli.ts --dump /path/to/some.pkpass
+```
+
+### Rewrite Keys & Export New `.pkpass`
+
+```
+# This would change a field to "2", i.e. to bump up a boarding group
+yarn ts-node ./bin/passbooklet-cli.ts /path/to/source.pkpass -u boardingPass.auxiliaryFields.3.value=2 -o /path/to/destination.pkpass
+```
+
+## TODO
+
+- parse IATA code from `barcode.message`
+- `.pkpass` validation
+- automate certificate import/`.env` creation
