@@ -97,3 +97,4 @@ yarn ts-node ./bin/passbooklet-cli.ts /path/to/source.pkpass -u boardingPass.aux
 - `.pkpass` validation
 - automate certificate import/`.env` creation
 - instead of `.env`, import from keychain at runtime so certs aren't just sitting on disk in the open (or, at least, read from `.p12`)
+- publish `npx` friendly executable
