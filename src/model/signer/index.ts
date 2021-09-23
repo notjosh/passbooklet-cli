@@ -163,6 +163,9 @@ const findWwdrCertificateFor = async (
 
   const chain: Certificate[] = await certificateChainEngine.sort();
 
+  // TODO: return all certificates that aren't the CA
+  // similar to default mode here: https://developer.apple.com/documentation/security/cmscertificatechainmode
+
   if (chain.length < 3) {
     throw new Error(
       'expected certificate chain of: [your certificate] -> [WWDR certificate] -> [Apple CA], but could not find a full chain. perhaps the code needs to be made aware of new Apple certificates!'
@@ -194,6 +197,8 @@ class PKIJSSigner {
     const wwdrcertificate: Certificate = await findWwdrCertificateFor(
       certificate
     );
+
+    // TODO: verify the certificate's ~pass type identifier~ matches the requested .pkpass 's JSON (probably in the caller though, really)
 
     console.log({ certificate });
 
