@@ -6,7 +6,7 @@ import SignedData from 'pkijs/src/SignedData.js';
 import notEmpty from '../../util/not-empty.js';
 import Manifesto from '../manifesto/index.js';
 import Zip from '../zip/index.js';
-import AppleIncRootCertificate from './certificates/AppleIncRootCertificate.js';
+import { rootCertificates } from './known-certificates.js';
 
 class CreeptoValidator {
   private zip: Zip;
@@ -45,8 +45,8 @@ class CreeptoValidator {
 
     // verify signature:
     // openssl smime -verify -in ./signature -inform der -content ./manifest.json -noverify -binary -out /dev/null
-    // or with pipe:
-    // cat ./signature | openssl smime -verify -inform der -content ./manifest.json -noverify -binary -out /dev/null
+    // OR with chain verification:
+    // openssl smime -verify -in ./signature -inform der -content ./manifest.json -binary -CAfile ./certificates/AppleIncRootCertificate.pem -purpose sslclient
 
     // TODO: this is slow, I think jszip can return this directly?
     const arrayBuffer = new Uint8Array(signature).buffer;
@@ -79,12 +79,13 @@ class CreeptoValidator {
 
     // Verify the signed data
     try {
+      console.log('gonna verify, brb');
       const result = await cmsSignedSimpl.verify({
         signer: 0,
         data: signedDataBuffer,
         checkChain: true,
         extendedMode: true,
-        trustedCerts: [AppleIncRootCertificate()],
+        trustedCerts: rootCertificates,
       });
 
       console.log({ result });
@@ -102,40 +103,42 @@ class CreeptoValidator {
           failed ? 'verification failed' : 'successfully verified'
         }!`
       );
-
-      // ok, if we made it here, then we have a valid signature for manifest.json
-      // let's check the certificates to make sure they're trusted & via WWDR
-
-      // show certificates:
-      // openssl pkcs7 -in ./signature -inform der -print_certs -noout
-      // or with pipe:
-      // cat ./signature | openssl pkcs7  -inform der -print_certs -noout
-
-      // TODO: update types, based on observation here
-      const certificates = (cmsSignedSimpl.certificates ?? []) as Certificate[];
-      const search =
-        'Apple Worldwide Developer Relations Certification Authority';
-
-      const certificateNames = certificates.map((certificate) => {
-        const subject = certificate.subject;
-        // TODO: is there shorthand for finding common values?
-        const cn = subject.typesAndValues.find(
-          (n) => (n.type as any) === '2.5.4.3'
-        );
-        const commonName = cn?.value.valueBlock.value;
-        return commonName;
-      });
-
-      const foundWWDRCert = certificateNames.some((certificateName) => {
-        return certificateName === search;
-      });
-
-      console.log('certificates in chain:', certificateNames);
-      console.log(`found WWDR in chain? ${foundWWDRCert ? 'yes' : 'no'}`);
     } catch (error) {
-      console.error(error);
-      errors.push(`Error during verification: ${error}`);
+      // console.error(error);
+      errors.push(`Error during verification: ${(error as any).message}`);
     }
+
+    // ok, if we made it here, then we have a valid signature for manifest.json
+    // let's check the certificates to make sure they're trusted & via WWDR
+
+    // show certificates:
+    // openssl pkcs7 -in ./signature -inform der -print_certs -noout
+    // or with pipe:
+    // cat ./signature | openssl pkcs7  -inform der -print_certs -noout
+
+    // TODO: update types, based on observation here
+    const certificates = (cmsSignedSimpl.certificates ?? []) as Certificate[];
+    const search =
+      'Apple Worldwide Developer Relations Certification Authority';
+
+    const certificateNames = certificates.map((certificate) => {
+      const subject = certificate.subject;
+      // TODO: is there shorthand for finding common values?
+      const cn = subject.typesAndValues.find(
+        (n) => (n.type as any) === '2.5.4.3'
+      );
+      const commonName = cn?.value.valueBlock.value;
+      return commonName;
+    });
+
+    const foundWWDRCert = certificateNames.some((certificateName) => {
+      return certificateName === search;
+    });
+
+    console.log('certificates in chain:', certificateNames);
+    console.log(`found WWDR in chain? ${foundWWDRCert ? 'yes' : 'no'}`);
+
+    console.log(`signature errors: ${errors.length}`);
 
     return errors;
   }
@@ -203,6 +206,8 @@ class CreeptoValidator {
         )}`
       );
     }
+
+    console.log(`manifest errors: ${errors.length}`);
 
     return errors;
   }
