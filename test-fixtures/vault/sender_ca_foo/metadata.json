@@ -1,0 +1,9 @@
+{
+    "private_key_storage": {
+        "parameters": {
+            "filename": "CA.key"
+        },
+        "storage_form": "PEM_FILE"
+    },
+    "version": 1
+}

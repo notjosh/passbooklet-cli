@@ -14,7 +14,11 @@ const crypto = webcrypto;
 setEngine(
   name,
   crypto as unknown as Crypto,
-  new CryptoEngine({ name, crypto, subtle: (crypto as any)['subtle'] })
+  new CryptoEngine({
+    name,
+    crypto,
+    subtle: (crypto as any)['subtle'],
+  }) as unknown as SubtleCrypto
 );
 
 const configFromEnv = () => {

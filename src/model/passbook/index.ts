@@ -1,8 +1,20 @@
 import flat from 'flat';
+import { readFile } from 'fs/promises';
 import set from 'lodash.set';
+import CMSEncoder, {
+  CMSSignedAttributes,
+  CMSSigningIdentity,
+} from '../../cms/encoder/index.js';
+import certificateFromBuffer from '../../cms/util/certificate-from-buffer.js';
+import keyFromBuffer from '../../cms/util/key-from-buffer.js';
+import readPEM, { PEMContentKind } from '../../cms/util/read-pem.js';
+import {
+  rootCertificates,
+  wwdrCertificates,
+} from '../creepto/known-certificates.js';
 import CreeptoValidator from '../creepto/validator.js';
 import Manifesto from '../manifesto/index.js';
-import Signer, { SignerConfig } from '../signer/index.js';
+import { SignerConfig } from '../signer/index.js';
 import Zip from '../zip/index.js';
 import { Pass } from './types.js';
 
@@ -91,8 +103,15 @@ class Passbook {
     const manifest = await manifesto.generate();
     const manifestString = JSON.stringify(manifest, null, 2);
 
-    const signer = new Signer(config);
-    const signature = await signer.signString(manifestString);
+    const signature = await CMSEncoder.encode(
+      [...rootCertificates, ...wwdrCertificates],
+      await makeSignerIdentity(config.certificatePath),
+      undefined,
+      undefined,
+      true,
+      [CMSSignedAttributes.signingTime],
+      Buffer.from(manifestString, 'utf-8')
+    );
 
     await this.zip.writeString('manifest.json', manifestString);
     await this.zip.writeBinary('signature', signature);
@@ -105,5 +124,26 @@ class Passbook {
     return validator.validate();
   }
 }
+
+const makeSignerIdentity = async (
+  pemPath: string
+): Promise<CMSSigningIdentity> => {
+  const contents = await readFile(pemPath, 'utf-8');
+
+  const certificate = certificateFromBuffer(
+    await readPEM(contents, PEMContentKind.Certificate)
+  );
+  const key = await keyFromBuffer(
+    await readPEM(contents, PEMContentKind.PrivateKey),
+    (
+      await certificate.getPublicKey()
+    ).algorithm
+  );
+
+  return {
+    certificate,
+    key,
+  };
+};
 
 export default Passbook;

@@ -2,6 +2,7 @@ import asn1js from 'asn1js';
 import difference from 'lodash.difference';
 import Certificate from 'pkijs/src/Certificate.js';
 import ContentInfo from 'pkijs/src/ContentInfo.js';
+import RelativeDistinguishedNames from 'pkijs/src/RelativeDistinguishedNames.js';
 import SignedData from 'pkijs/src/SignedData.js';
 import notEmpty from '../../util/not-empty.js';
 import Manifesto from '../manifesto/index.js';
@@ -122,7 +123,7 @@ class CreeptoValidator {
       'Apple Worldwide Developer Relations Certification Authority';
 
     const certificateNames = certificates.map((certificate) => {
-      const subject = certificate.subject;
+      const subject = certificate.subject as RelativeDistinguishedNames;
       // TODO: is there shorthand for finding common values?
       const cn = subject.typesAndValues.find(
         (n) => (n.type as any) === '2.5.4.3'
