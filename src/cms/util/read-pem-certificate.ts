@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import Certificate from 'pkijs/src/Certificate.js';
+import { type Certificate } from 'pkijs';
 import certificateFromBuffer from './certificate-from-buffer';
 import readPEM, { PEMContentKind } from './read-pem';
 

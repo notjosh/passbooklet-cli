@@ -1,6 +1,10 @@
-import Certificate from 'pkijs/src/Certificate.js';
-import CertificateChainValidationEngine from 'pkijs/src/CertificateChainValidationEngine.js';
+import {
+  type Certificate,
+  CertificateChainValidationEngine,
+  CertificateChainValidationEngineParameters,
+} from 'pkijs';
 import { CMSCertificateChainMode } from '../types/certificate-chain-mode.js';
+import { readableTypesAndValues } from './readable-name.js';
 
 // we have a number of valid candidates, depending on who issues the certificate we want to sign with
 const certificateChainFor = async (
@@ -26,11 +30,12 @@ const certificateChainFor = async (
   ];
 
   // TODO: to we need `trustedCerts` separate from `certs`? could they be merged for our purposes?
-  const certificateChainValidationEngineParameters = {
-    certs: candidates,
-    trustedCerts,
-    checkDate,
-  };
+  const certificateChainValidationEngineParameters: CertificateChainValidationEngineParameters =
+    {
+      certs: candidates,
+      trustedCerts,
+      checkDate,
+    };
 
   const certificateChainEngine = new CertificateChainValidationEngine(
     certificateChainValidationEngineParameters

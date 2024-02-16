@@ -1,5 +1,5 @@
 import asn1js from 'asn1js';
-import Certificate from 'pkijs/src/Certificate.js';
+import { Certificate } from 'pkijs';
 import buf2ab from './buf2ab.js';
 
 export default (buffer: Buffer): Certificate => {

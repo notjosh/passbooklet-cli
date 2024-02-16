@@ -1,4 +1,4 @@
-import AttributeTypeAndValue from 'pkijs/src/AttributeTypeAndValue.js';
+import { type AttributeTypeAndValue } from "pkijs";
 
 const typeMap: Record<string, string> = {
   '2.5.4.6': 'C',

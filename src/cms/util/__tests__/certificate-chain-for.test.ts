@@ -1,10 +1,24 @@
 import Path from 'path';
-import Certificate from 'pkijs/src/Certificate.js';
+import { Certificate, CryptoEngine, getEngine, setEngine } from 'pkijs';
 import { fileURLToPath } from 'url';
 import { CMSCertificateChainMode } from '../../types/certificate-chain-mode.js';
 import certificateChainFor from '../certificate-chain-for.js';
 import readPEMCertificate from '../read-pem-certificate.js';
 import { readableTypesAndValues } from '../readable-name.js';
+import { webcrypto } from 'crypto';
+
+// TODO: when @types/node catches up, clean this up
+const name = 'node-webcrypto' as const;
+const crypto = webcrypto;
+
+setEngine(
+  name,
+  new CryptoEngine({
+    name,
+    crypto: crypto as any,
+  }) as any
+);
+const subtle = getEngine().crypto?.subtle as SubtleCrypto;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);

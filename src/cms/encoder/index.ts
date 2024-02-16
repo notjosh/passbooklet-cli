@@ -10,21 +10,24 @@
 //);
 
 import asn1js from 'asn1js';
-import castArray from 'lodash/castArray.js';
-import uniq from 'lodash/uniq.js';
-import AlgorithmIdentifier from 'pkijs/src/AlgorithmIdentifier.js';
-import Attribute from 'pkijs/src/Attribute.js';
-import Certificate from 'pkijs/src/Certificate.js';
-import { getEngine } from 'pkijs/src/common.js';
-import ContentInfo from 'pkijs/src/ContentInfo.js';
-import EncapsulatedContentInfo from 'pkijs/src/EncapsulatedContentInfo.js';
-import IssuerAndSerialNumber from 'pkijs/src/IssuerAndSerialNumber.js';
-import SignedAndUnsignedAttributes from 'pkijs/src/SignedAndUnsignedAttributes.js';
-import SignedData from 'pkijs/src/SignedData.js';
-import SignerInfo from 'pkijs/src/SignerInfo.js';
+import castArray from 'lodash.castarray';
+import uniq from 'lodash.uniq';
+import {
+  AlgorithmIdentifier,
+  Attribute,
+  Certificate,
+  ContentInfo,
+  EncapsulatedContentInfo,
+  IssuerAndSerialNumber,
+  SignedAndUnsignedAttributes,
+  SignedData,
+  SignerInfo,
+  getEngine,
+} from 'pkijs';
 import { CMSCertificateChainMode } from '../types/certificate-chain-mode.js';
 import buf2ab from '../util/buf2ab.js';
 import certificateChainFor from '../util/certificate-chain-for.js';
+import { readableTypesAndValues } from '../util/readable-name.js';
 
 // func CMSEncodeContent(_ signers: CFTypeRef?,
 //                     _ recipients: CFTypeRef?,
@@ -77,7 +80,10 @@ class CMSEncoder {
       );
     }
 
-    this._signers = [...this._signers, ...castArray(signers)];
+    this._signers = [
+      ...this._signers,
+      ...(Array.isArray(signers) ? signers : [signers]),
+    ];
   }
 
   addRecipients(recipients: CMSCertificate | CMSCertificate[]) {
@@ -180,8 +186,6 @@ class CMSEncoder {
   }
 
   private async buildOutput(content: Buffer): Promise<Buffer> {
-    console.log('buildOutput');
-
     const isSigning = this._signers.length > 0;
     const isEncrypting = this._recipients.length > 0;
 
@@ -197,7 +201,7 @@ class CMSEncoder {
 
     const engine = getEngine();
     const ab = buf2ab(content);
-    const hash = await engine.subtle.digest(
+    const hash = await engine.crypto?.subtle.digest(
       { name: this._signerAlgorithm ?? 'SHA-1' },
       ab
     );
@@ -210,19 +214,21 @@ class CMSEncoder {
       }),
     });
 
+    const subjectCommonNames = (chain: Certificate[]): string[] =>
+      chain.map(
+        (certificate) =>
+          readableTypesAndValues(certificate.subject.typesAndValues)['CN']
+      );
+
     let certificates: Certificate[] = [];
 
     for (const signer of this._signers) {
-      console.log('hello signer');
-
       const chain = await certificateChainFor(
         signer.certificate,
         [],
         this._trustedCertificates,
         this._certificateChainMode
       );
-
-      console.log('signer chain count:', chain.length);
 
       certificates = [...certificates, ...chain];
 
@@ -265,10 +271,7 @@ class CMSEncoder {
 
       signedData.signerInfos.push(signerInfo);
 
-      // XXX: requires await, no matter what typescript suggests!
       await signedData.sign(signer.key, 0, this._signerAlgorithm ?? 'SHA-1');
-
-      console.log('signed, brb');
     }
 
     signedData.certificates = certificates;
@@ -300,7 +303,7 @@ class CMSEncoder {
     detachedContent: boolean, // cannot be true when "encrypt" mode
     signedAttributes: CMSSignedAttributes | CMSSignedAttributes[], // placeholder for additional signed attributes
     content: Buffer
-  ): Promise<Buffer> {
+  ): Promise<Buffer | undefined> {
     const encoder = new this(certificates);
     if (signers != null) {
       encoder.addSigners(signers);
@@ -313,8 +316,8 @@ class CMSEncoder {
     }
     encoder.setHasDetachedContent(detachedContent);
     encoder.addSignedAttributes(signedAttributes);
-    encoder.updateContent(content);
-    return encoder.updateContent(content);
+    encoder.certificateChainMode = CMSCertificateChainMode.chainWithRoot; // TODO: uhhhh do I need root? tests pass with it, but hm
+    return await encoder.updateContent(content);
   }
 }
 
