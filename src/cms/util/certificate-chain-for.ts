@@ -7,7 +7,8 @@ const certificateChainFor = async (
   certificate: Certificate,
   candidatesArg: Certificate[],
   trustedCerts: Certificate[],
-  chainMode: CMSCertificateChainMode = CMSCertificateChainMode.chain
+  chainMode: CMSCertificateChainMode = CMSCertificateChainMode.chain,
+  checkDate: Date | undefined = undefined
 ): Promise<Certificate[]> => {
   // short circuit for "none" case
   if (chainMode === CMSCertificateChainMode.none) {
@@ -28,6 +29,7 @@ const certificateChainFor = async (
   const certificateChainValidationEngineParameters = {
     certs: candidates,
     trustedCerts,
+    checkDate,
   };
 
   const certificateChainEngine = new CertificateChainValidationEngine(
