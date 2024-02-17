@@ -5,20 +5,18 @@ import temp from 'temp';
 import fs from 'fs';
 
 import { webcrypto } from 'crypto';
-import { setEngine } from 'pkijs/src/common.js';
-import CryptoEngine from 'pkijs/src/CryptoEngine.js';
+import { setEngine } from 'pkijs';
+import { CryptoEngine } from 'pkijs';
 
 // TODO: when @types/node catches up, clean this up
 const name = 'node-webcrypto';
 const crypto = webcrypto;
 setEngine(
   name,
-  crypto as unknown as Crypto,
   new CryptoEngine({
     name,
-    crypto,
-    subtle: (crypto as any)['subtle'],
-  }) as unknown as SubtleCrypto
+    crypto: crypto as any,
+  }) as any
 );
 
 const configFromEnv = () => {

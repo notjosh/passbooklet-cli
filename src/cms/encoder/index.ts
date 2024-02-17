@@ -10,7 +10,6 @@
 //);
 
 import asn1js from 'asn1js';
-import castArray from 'lodash.castarray';
 import uniq from 'lodash.uniq';
 import {
   AlgorithmIdentifier,
@@ -65,12 +64,21 @@ class CMSEncoder {
 
   private _trustedCertificates: CMSCertificate[];
 
+  private _checkDate?: Date;
+
   private content?: Buffer;
   private output?: Buffer;
 
   // TODO: convert to kind of "vault" with roots and certs and etc etc and etc, etc. (etc)
-  constructor(trustedCertificates: CMSCertificate | CMSCertificate[]) {
-    this._trustedCertificates = castArray(trustedCertificates);
+  constructor(
+    trustedCertificates: CMSCertificate | CMSCertificate[],
+    checkDate?: Date
+  ) {
+    this._trustedCertificates = Array.isArray(trustedCertificates)
+      ? trustedCertificates
+      : [trustedCertificates];
+
+    this._checkDate = checkDate;
   }
 
   addSigners(signers: CMSSigningIdentity | CMSSigningIdentity[]) {
@@ -93,7 +101,10 @@ class CMSEncoder {
       );
     }
 
-    this._recipients = [...this._recipients, ...castArray(recipients)];
+    this._recipients = [
+      ...this._recipients,
+      ...(Array.isArray(recipients) ? recipients : [recipients]),
+    ];
   }
 
   setHasDetachedContent(hasDetachedContent: boolean) {
@@ -137,7 +148,9 @@ class CMSEncoder {
 
     this._supportingCertificates = uniq([
       ...this._supportingCertificates,
-      ...castArray(supportingCertificates),
+      ...(Array.isArray(supportingCertificates)
+        ? supportingCertificates
+        : [supportingCertificates]),
     ]);
   }
 
@@ -152,7 +165,9 @@ class CMSEncoder {
 
     this._signedAttributes = uniq([
       ...this._signedAttributes,
-      ...castArray(newSignedAttributes),
+      ...(Array.isArray(newSignedAttributes)
+        ? newSignedAttributes
+        : [newSignedAttributes]),
     ]);
   }
 
@@ -167,6 +182,20 @@ class CMSEncoder {
     }
 
     this._certificateChainMode = value;
+  }
+
+  public get checkDate(): Date | undefined {
+    return this._checkDate;
+  }
+
+  public set checkDate(value: Date | undefined) {
+    if (this.output != null) {
+      throw new Error(
+        'Content has already been generated, this cannot be called now.'
+      );
+    }
+
+    this._checkDate = value;
   }
 
   async updateContent(content: Buffer) {
@@ -202,7 +231,7 @@ class CMSEncoder {
     const engine = getEngine();
     const ab = buf2ab(content);
     const hash = await engine.crypto?.subtle.digest(
-      { name: this._signerAlgorithm ?? 'SHA-1' },
+      { name: this._signerAlgorithm ?? 'SHA-256' },
       ab
     );
 
@@ -214,12 +243,6 @@ class CMSEncoder {
       }),
     });
 
-    const subjectCommonNames = (chain: Certificate[]): string[] =>
-      chain.map(
-        (certificate) =>
-          readableTypesAndValues(certificate.subject.typesAndValues)['CN']
-      );
-
     let certificates: Certificate[] = [];
 
     for (const signer of this._signers) {
@@ -227,7 +250,8 @@ class CMSEncoder {
         signer.certificate,
         [],
         this._trustedCertificates,
-        this._certificateChainMode
+        this._certificateChainMode,
+        this._checkDate
       );
 
       certificates = [...certificates, ...chain];
@@ -271,7 +295,7 @@ class CMSEncoder {
 
       signedData.signerInfos.push(signerInfo);
 
-      await signedData.sign(signer.key, 0, this._signerAlgorithm ?? 'SHA-1');
+      await signedData.sign(signer.key, 0, this._signerAlgorithm ?? 'SHA-256');
     }
 
     signedData.certificates = certificates;
@@ -302,8 +326,15 @@ class CMSEncoder {
     eContentTypeOID: string | undefined, // optional top-level OID, otherwise "data" used as default
     detachedContent: boolean, // cannot be true when "encrypt" mode
     signedAttributes: CMSSignedAttributes | CMSSignedAttributes[], // placeholder for additional signed attributes
-    content: Buffer
+    content: Buffer,
+    checkDate?: Date
   ): Promise<Buffer | undefined> {
+    console.log(
+      certificates.map(
+        (c) =>
+          `${readableTypesAndValues(c.subject.typesAndValues)['CN']}:${readableTypesAndValues(c.subject.typesAndValues)['O']}`
+      )
+    );
     const encoder = new this(certificates);
     if (signers != null) {
       encoder.addSigners(signers);
@@ -316,6 +347,7 @@ class CMSEncoder {
     }
     encoder.setHasDetachedContent(detachedContent);
     encoder.addSignedAttributes(signedAttributes);
+    encoder.checkDate = checkDate;
     encoder.certificateChainMode = CMSCertificateChainMode.chainWithRoot; // TODO: uhhhh do I need root? tests pass with it, but hm
     return await encoder.updateContent(content);
   }

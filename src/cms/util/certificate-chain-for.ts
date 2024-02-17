@@ -4,7 +4,6 @@ import {
   CertificateChainValidationEngineParameters,
 } from 'pkijs';
 import { CMSCertificateChainMode } from '../types/certificate-chain-mode.js';
-import { readableTypesAndValues } from './readable-name.js';
 
 // we have a number of valid candidates, depending on who issues the certificate we want to sign with
 const certificateChainFor = async (

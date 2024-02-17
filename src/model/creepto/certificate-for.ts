@@ -1,5 +1,5 @@
 import asn1js from 'asn1js';
-import Certificate from 'pkijs/src/Certificate.js';
+import { Certificate } from 'pkijs';
 
 const certificateFor = (buffer: Buffer): Certificate => {
   // TODO: use buf2ab

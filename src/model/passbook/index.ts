@@ -1,4 +1,4 @@
-import flat from 'flat';
+import * as flat from 'flat';
 import { readFile } from 'fs/promises';
 import set from 'lodash.set';
 import CMSEncoder, {
@@ -14,9 +14,14 @@ import {
 } from '../creepto/known-certificates.js';
 import CreeptoValidator from '../creepto/validator.js';
 import Manifesto from '../manifesto/index.js';
-import { SignerConfig } from '../signer/index.js';
+// import { SignerConfig } from '../signer/index.js';
 import Zip from '../zip/index.js';
 import { Pass } from './types.js';
+
+type SignerConfig = {
+  certificatePath: string;
+  wwdrCertificatePath: string;
+};
 
 type SaveConfig = {
   teamIdentifier: string;
@@ -62,11 +67,14 @@ class Passbook {
   }
 
   async update(updates: string[]): Promise<void> {
-    const updateKeyValues = updates.reduce((acc, update) => {
-      const [key, value] = update.split(/=(.*)/);
-      acc[key] = value;
-      return acc;
-    }, {} as Record<string, unknown>);
+    const updateKeyValues = updates.reduce(
+      (acc, update) => {
+        const [key, value] = update.split(/=(.*)/);
+        acc[key] = value;
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
 
     const pass = await this.readPass();
 
@@ -111,10 +119,11 @@ class Passbook {
       true,
       [CMSSignedAttributes.signingTime],
       Buffer.from(manifestString, 'utf-8')
+      // ,new Date('2021-10-05T00:00:00Z') // for testing, use a fixed date from when a known certificate was valid
     );
 
     await this.zip.writeString('manifest.json', manifestString);
-    await this.zip.writeBinary('signature', signature);
+    await this.zip.writeBinary('signature', signature ?? Buffer.from([]));
 
     await this.zip.saveTo(outputPath);
   }
@@ -135,9 +144,7 @@ const makeSignerIdentity = async (
   );
   const key = await keyFromBuffer(
     await readPEM(contents, PEMContentKind.PrivateKey),
-    (
-      await certificate.getPublicKey()
-    ).algorithm
+    (await certificate.getPublicKey()).algorithm
   );
 
   return {

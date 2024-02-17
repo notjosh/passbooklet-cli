@@ -5,6 +5,7 @@ import AppleRootCAG3 from './certificates/AppleRootCA-G3.js';
 import AppleWWDRCA from './certificates/AppleWWDRCA.js';
 import AppleWWDRCAG2 from './certificates/AppleWWDRCAG2.js';
 import AppleWWDRCAG3 from './certificates/AppleWWDRCAG3.js';
+import AppleWWDRCAG4 from './certificates/AppleWWDRCAG4.js';
 import AppleWWDRCAG5 from './certificates/AppleWWDRCAG5.js';
 import AppleWWDRCAG6 from './certificates/AppleWWDRCAG6.js';
 
@@ -12,6 +13,7 @@ const wwdrCertificates = [
   AppleWWDRCA(),
   AppleWWDRCAG2(),
   AppleWWDRCAG3(),
+  AppleWWDRCAG4(),
   AppleWWDRCAG5(),
   AppleWWDRCAG6(),
 ];

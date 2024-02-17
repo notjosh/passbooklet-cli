@@ -1,13 +1,15 @@
 import asn1js from 'asn1js';
 import difference from 'lodash.difference';
-import Certificate from 'pkijs/src/Certificate.js';
-import ContentInfo from 'pkijs/src/ContentInfo.js';
-import RelativeDistinguishedNames from 'pkijs/src/RelativeDistinguishedNames.js';
-import SignedData from 'pkijs/src/SignedData.js';
+import {
+  Certificate,
+  ContentInfo,
+  RelativeDistinguishedNames,
+  SignedData,
+} from 'pkijs';
 import notEmpty from '../../util/not-empty.js';
 import Manifesto from '../manifesto/index.js';
 import Zip from '../zip/index.js';
-import { rootCertificates } from './known-certificates.js';
+import { rootCertificates, wwdrCertificates } from './known-certificates.js';
 
 class CreeptoValidator {
   private zip: Zip;
@@ -86,10 +88,10 @@ class CreeptoValidator {
         data: signedDataBuffer,
         checkChain: true,
         extendedMode: true,
-        trustedCerts: rootCertificates,
+        trustedCerts: [...rootCertificates, ...wwdrCertificates],
       });
 
-      console.log({ result });
+      // console.log('result:', result);
 
       let failed = true;
       const verified = result.signatureVerified;
@@ -128,8 +130,16 @@ class CreeptoValidator {
       const cn = subject.typesAndValues.find(
         (n) => (n.type as any) === '2.5.4.3'
       );
+      const o = subject.typesAndValues.find(
+        (n) => (n.type as any) === '2.5.4.10'
+      );
+      const ou = subject.typesAndValues.find(
+        (n) => (n.type as any) === '2.5.4.11'
+      );
+      const serialNumber = certificate.serialNumber;
+
       const commonName = cn?.value.valueBlock.value;
-      return commonName;
+      return `${commonName}:${serialNumber} (o:${o?.value.valueBlock.value}, ou:${ou?.value.valueBlock.value})`;
     });
 
     const foundWWDRCert = certificateNames.some((certificateName) => {

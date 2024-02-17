@@ -36,8 +36,6 @@ const verify = command({
     // validate manifest
 
     // validate signature
-
-    console.log('aaaaaaaaa');
   },
 });
 
